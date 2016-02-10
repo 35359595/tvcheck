@@ -1,0 +1,7 @@
+[package]
+authors = ["35359595 <35359595i@gmail.com>"]
+name = "tvcheck"
+version = "0.1.0"
+
+[dependencies]
+hyper = "0.7.2"
