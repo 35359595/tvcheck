@@ -1,7 +1,9 @@
 // TV Series checker by Ivan Temchenko 2016
 // ivan.temchenko@yandex.ua
 
+#[macro_use]
 extern crate hyper;
+extern crate lazy_static;
 use std::io;
 use std::io::prelude::*;
 use std::fs::{File, metadata, create_dir};
@@ -9,18 +11,20 @@ use hyper::Client;
 use hyper::header::Connection;
 use std::env;
 
-fn main() {
-	//Some predifined variables here
-	static home: String = match env::home_dir() {
+lazy_static! {
+	static ref HOME: String = match env::home_dir() {
 		Some(ref p) => p.to_str().unwrap().to_owned(),
 		None => "./".to_string(),
-		};
+	};
+}
 
-	if !test(&home) { match create_dir(&home) {
+fn main() {
+
+	if !test(&*HOME) { match create_dir(&home) {
 				Err(why) => println!("! {:?}", why.kind()),
 				Ok(_) => {},
 			} }
-	let list = home.join("/list");
+	let list = *HOME + "/list";
 	if !test(&list) {
 		println!("List is empty, provide link to episodes list file:");
 		let mut txt = String::new();
