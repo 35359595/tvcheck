@@ -1,38 +1,38 @@
 // TV Series checker by Ivan Temchenko 2016
 // ivan.temchenko@yandex.ua
 
-#[macro_use]
 extern crate hyper;
-extern crate lazy_static;
 use std::io;
 use std::io::prelude::*;
 use std::fs::{File, metadata, create_dir};
 use hyper::Client;
 use hyper::header::Connection;
 use std::env;
+use std::path::PathBuf;
 
-lazy_static! {
-	static ref HOME: String = match env::home_dir() {
-		Some(ref p) => p.to_str().unwrap().to_owned(),
-		None => "./".to_string(),
-	};
-}
+
+//p.to_str().unwrap().to_owned(),
 
 fn main() {
+	let mut homem = homedir();
+	let home = &homem.to_str().unwrap();	
 
-	if !test(&*HOME) { match create_dir(&home) {
+	if !test(&home.to_string()) { match create_dir(&home.to_string()) {
 				Err(why) => println!("! {:?}", why.kind()),
 				Ok(_) => {},
 			} }
-	let list = *HOME + "/list";
-	if !test(&list) {
+	let mut listm = homedir();
+	listm.push("list");
+
+	let list = &listm.to_str().unwrap();
+	if !test(&list.to_string()) {
 		println!("List is empty, provide link to episodes list file:");
 		let mut txt = String::new();
 		io::stdin().read_line(&mut txt).ok().expect("Failed to read line");
-		write(txt, &list);
+		write(txt, &list.to_string());
 	}
 	
-	let vlist = read(&list);
+	let vlist = read(&list.to_string());
 	for path in vlist {
 	if &path != "" {
 		let file = 	&path.trim_left_matches("http://fs.to/flist/").to_string();
@@ -95,4 +95,12 @@ fn test(path: &String) -> bool {
 		Ok(_) => true,
 		Err(_) => false,
 	}
+}
+
+fn homedir() -> PathBuf {
+	let homedir: PathBuf = match env::home_dir() {
+		Some(ref p) => p.to_owned(),
+		None => PathBuf::from("./"),
+	};
+	homedir
 }
