@@ -9,7 +9,7 @@ use hyper::Client;
 use hyper::header::Connection;
 use std::env;
 use std::path::PathBuf;
-use std::collections::HashSet;
+use std::process::Command;
 
 fn main() {
 	let homem = homedir();
@@ -68,17 +68,36 @@ fn main() {
 		
 		//if watched - checking series list
 		if test(&target.to_string()) {
+			println!("Getting list from {}", &path);
 			let season = get(&path);
+			println!("Got {} episodes", &season.len());
+			println!("Getting watched list from {}", &target);
 			let local_series = read(target);
-			let remote: HashSet<_> = season.iter().cloned().collect();
-			let local: HashSet<_> = local_series.iter().cloned().collect();
-			for d in local.difference(&remote) {
-				println!("Difference!: {}", d);
+			println!("Got {} watched episodes", &local_series.len());
+			let mut cnt = &season.len() - &local_series.len();
+			if cnt > 0 {
+				while cnt > 0 {
+					println!("New episode! {}", &season[&season.len() - &cnt]);
+					cnt -= 1;
+					println!("Downloading...");
+					let mut dwnl = homedir();
+					dwnl.push("Downloads");
+					let store = dwnl.to_str().unwrap();
+//					let command: String = "aria2c -x 5 ".to_string() + &season[&season.len() - &cnt] + " " + "-d " + store;
+					let status = Command::new("aria2c")
+						.arg("-x 5")
+						.arg(&season[&season.len() - &cnt])
+						.arg("-d")
+						.arg(store)
+						.status()
+						.unwrap_or_else(|i| {panic!("Failed to run process: {}", i)});
+					println!("Done. Status: {}", status);
+				}
 			}
 		}
 		
 		else {
-			println!("Series allready in list!");
+			println!("Wow, thats unexpected....");
 		     }
 	} }
 }
