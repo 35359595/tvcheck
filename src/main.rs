@@ -22,8 +22,18 @@ fn main() {
 	let mut listm = homedir();
 	listm.push(".tvcheck");
 	listm.push("list");
-
 	let list = &listm.to_str().unwrap();
+
+	//checking program arguments
+	let args: Vec<String> = env::args().collect();
+	if args.len() > 1 {
+		 if args[1] == "-add" {
+                        println!("Adding: {}", args[args.len() - 1]);
+		//	let txt = &args[args.len() -1];
+		}
+	}
+
+	//check if any series added
 	if !test(&list.to_string()) {
 		println!("List is empty, provide link to episodes list file:");
 		let mut txt = String::new();
@@ -43,41 +53,22 @@ fn main() {
 		//check watched series
 		//if not watched before
 		if !test(&target.to_string()) {
-			let mut file = match File::create(&filem){
-				Ok(file) => file,
-				Err(_) => panic!("Unable to create file!"),
-			};
-			println!("List entry: {}", &path);
-			let season = get(&path);
-			
-			//Writing new series to file
-	
-			for e in season {
-				match file.write_all(&e.as_bytes()){
-					Ok(file) => file,
-					Err(_) => panic!("Unable to write to file!"),
-				};
-				match file.write_all(b"\n"){
-					Ok(file) => file,
-					Err(_) => panic!("fucking new line!"),
-				};
-			
-				println!("Added new Episode: {}", e);
-			}
+			add(&target.to_string(), &path);
 		}
-		
+	
 		//if watched - checking series list
 		if test(&target.to_string()) {
 			println!("Getting list from {}", &path);
 			let season = get(&path);
 			println!("Got {} episodes", &season.len());
 			println!("Getting watched list from {}", &target);
-			let local_series = read(target);
+			let local_series = read(&target);
 			println!("Got {} watched episodes", &local_series.len());
 			let mut cnt = &season.len() - &local_series.len();
 			if cnt > 0 {
 				while cnt > 0 {
-					println!("New episode! {}", &season[&season.len() - &cnt]);
+					let episode = &season[&season.len() - &cnt];
+					println!("New episode! {}", &episode);
 					cnt -= 1;
 					println!("Downloading...");
 					let mut dwnl = homedir();
@@ -86,14 +77,18 @@ fn main() {
 //					let command: String = "aria2c -x 5 ".to_string() + &season[&season.len() - &cnt] + " " + "-d " + store;
 					let status = Command::new("aria2c")
 						.arg("-x 5")
-						.arg(&season[&season.len() - &cnt])
+						.arg(&episode)
 						.arg("-d")
 						.arg(store)
 						.status()
 						.unwrap_or_else(|i| {panic!("Failed to run process: {}", i)});
 					println!("Done. Status: {}", status);
 				}
+				//add all episodes after downloading
+				let new = &filem.to_str().unwrap();
+				add(&new.to_string(), &path);
 			}
+			else { println!("No new episodes found for this series."); }
 		}
 		
 		else {
@@ -147,4 +142,23 @@ fn homedir() -> PathBuf {
 		None => PathBuf::from("./"),
 	};
 	homedir
+}
+
+fn add(filem: &String, path: &String) {
+	let mut file = match File::create(filem){
+		Ok(file) => file,
+		Err(_) => panic!("Unable to create file!"),
+	};
+	let season = get(&path);
+		for e in season {
+			match file.write_all(&e.as_bytes()){
+				Ok(file) => file,
+				Err(_) => panic!("Unable to write to file!"),
+			};
+			match file.write_all(b"\n"){
+				Ok(file) => file,
+				Err(_) => panic!("fucking new line!"),
+			};
+		println!("Added new Episode: {}", e);
+		}
 }
