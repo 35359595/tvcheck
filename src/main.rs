@@ -2,14 +2,16 @@
 // ivan.temchenko@yandex.ua
 
 extern crate hyper;
+extern crate notify_rust;
 use std::io;
 use std::io::prelude::*;
-use std::fs::{File, metadata, create_dir};
+use std::fs::{File, metadata, create_dir, OpenOptions};
 use hyper::Client;
 use hyper::header::Connection;
 use std::env;
 use std::path::PathBuf;
 use std::process::Command;
+use notify_rust::Notification;
 
 fn main() {
 	let homem = homedir();
@@ -29,7 +31,26 @@ fn main() {
 	if args.len() > 1 {
 		 if args[1] == "-add" {
                         println!("Adding: {}", args[args.len() - 1]);
-		//	let txt = &args[args.len() -1];
+			let txt = &args[args.len() -1];
+			//adding new line to list
+			append(txt);
+		}
+		if args[1] == "-new" {
+			println!("Adding new series");
+			//making path on new file
+			let txt = &args[&args.len() - 1];
+			let file = &txt.trim_left_matches("http://fs.to/flist/").to_string();
+			let mut filem = homedir();
+			filem.push(".tvcheck");
+			filem.push(file);
+			let target = &filem.to_str().unwrap();
+			//add series to list
+			append(txt);
+			//creating empty new file
+			match File::create(target) {
+				Ok(file) => file,
+				Err(_) => panic!("Unable to create new file!"),
+			};
 		}
 	}
 
@@ -162,3 +183,44 @@ fn add(filem: &String, path: &String) {
 		println!("Added new Episode: {}", e);
 		}
 }
+
+fn append(line: &String){
+	//getting path to list
+	let mut path = homedir();
+	path.push(".tvcheck");
+	path.push("list");
+	let path = path.to_str().unwrap();	
+	//opening file for writing and append
+	let mut target = OpenOptions::new()
+		.write(true)
+		.append(true)
+		.open(path)
+		.unwrap();
+	//Writing string to file
+//	let out = format!("{}", line);
+	if let Err(e) = writeln!(target, "{}", line) {
+		println!("{}", e);
+	}
+}
+
+fn notify(episode: &String) {
+	let mut title = episode.to_owned();
+	title.push_str(" downloaded.");
+	Notification::new()
+		.summary(&episode)
+		.action("play", "play")
+		.action("clicked", "play")
+//		.hint(Hint::Resident(true))
+		.show()
+		.unwrap()
+		.wait_for_action({|action|
+	match action {
+            "play" => {},//invoke vlc},
+//            "clicked" => {println!("that was correct")},
+            // here "__closed" is a hardcoded keyword
+            "__closed" => (),
+            _ => ()
+        }
+    });
+}
+
