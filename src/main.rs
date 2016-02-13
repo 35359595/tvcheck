@@ -12,6 +12,7 @@ use std::env;
 use std::path::PathBuf;
 use std::process::Command;
 use notify_rust::Notification;
+use std::process;
 
 fn main() {
 	let homem = homedir();
@@ -29,7 +30,24 @@ fn main() {
 	//checking program arguments
 	let args: Vec<String> = env::args().collect();
 	if args.len() > 1 {
-		 if args[1] == "-add" {
+		if args[1] == "-v" {
+			println!("version 0.3.1 build 021316.1538");
+			process::exit(0);
+		}
+		if args[1] == "-h" {
+			print!("Welcome to tvcheck 0.3.1
+Author: Ivan Temchenko @ 2016
+Options:
+tvcheck			: Run without parameters to check new episodes of added series;
+	-v		: version info;
+	-add URL	: add series with all watched episodes;
+	-new URL	: add new series you did not watched yet;
+
+If you whant some series - manualy edit the file of it in ~/.tvcheck/, but remember that series must remain in line and there is NO support to download series from the middle (2-4 of 1-11 etc.)
+");
+			process::exit(0);
+		}
+		if args[1] == "-add" {
                         println!("Adding: {}", args[args.len() - 1]);
 			let txt = &args[args.len() -1];
 			//adding new line to list
