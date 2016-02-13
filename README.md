@@ -8,6 +8,8 @@ To add more then one link to series manualy edit ~/.tvcheck/list and add link to
 Tested only on linux!
 
 #HOWTO
+run `tvcheck -h` for help menu of `tvcheck -v` for version info.
+
 First launch will ask for link to "Список серий" from fs.to 
 
 `To add new series with watched episoded: tvcheck -add http://linkto/list?folder=0001&quality=webdl 
