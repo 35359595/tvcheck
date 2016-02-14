@@ -15,6 +15,7 @@ use notify_rust::Notification;
 use std::process;
 
 fn main() {
+	//set and check 
 	let homem = homedir();
 	let home = &homem.to_str().unwrap();	
 
@@ -30,29 +31,38 @@ fn main() {
 	//checking program arguments
 	let args: Vec<String> = env::args().collect();
 	if args.len() > 1 {
+		//show version info
 		if args[1] == "-v" {
-			println!("version 0.3.1 build 021316.1538");
+			println!("version 0.3.2 build 021416.0927");
 			process::exit(0);
 		}
+		//show help
 		if args[1] == "-h" {
-			print!("Welcome to tvcheck 0.3.1
-Author: Ivan Temchenko @ 2016
+print!("
+||===============|Welcome to tvcheck 0.3.2|=================||
+||===========|Author: Ivan Temchenko (@ 2016)|==============||
+
 Options:
+
 tvcheck			: Run without parameters to check new episodes of added series;
-	-v		: version info;
 	-add URL	: add series with all watched episodes;
 	-new URL	: add new series you did not watched yet;
+	-v		: version info;
+	-h		: show this help message;
 
-If you whant some series - manualy edit the file of it in ~/.tvcheck/, but remember that series must remain in line and there is NO support to download series from the middle (2-4 of 1-11 etc.)
+If you whant some specifiv episode - manualy edit the file of it in ~/.tvcheck/, but remember that series must remain in line and there is NO support to download series from the middle (2-4 of 1-11 etc.)
+||==========================================================||
 ");
 			process::exit(0);
 		}
+		//add wtached series
 		if args[1] == "-add" {
                         println!("Adding: {}", args[args.len() - 1]);
 			let txt = &args[args.len() -1];
 			//adding new line to list
 			append(txt);
 		}
+		//adding new series
 		if args[1] == "-new" {
 			println!("Adding new series");
 			//making path on new file
@@ -74,12 +84,13 @@ If you whant some series - manualy edit the file of it in ~/.tvcheck/, but remem
 
 	//check if any series added
 	if !test(&list.to_string()) {
+		//if no list file - ask for link and create list
 		println!("List is empty, provide link to episodes list file:");
 		let mut txt = String::new();
 		io::stdin().read_line(&mut txt).ok().expect("Failed to read line");
 		write(txt, &list.to_string());
 	}
-	
+	//if list exists - process each series
 	let vlist = read(&list.to_string());
 	for path in vlist {
 	 if &path != "" {
@@ -90,7 +101,7 @@ If you whant some series - manualy edit the file of it in ~/.tvcheck/, but remem
 		let target = &filem.to_str().unwrap();
 
 		//check watched series
-		//if not watched before
+		//if not watched before - adding list of server episodes to local file
 		if !test(&target.to_string()) {
 			add(&target.to_string(), &path);
 		}
@@ -104,6 +115,7 @@ If you whant some series - manualy edit the file of it in ~/.tvcheck/, but remem
 			let local_series = read(&target);
 			println!("Got {} watched episodes", &local_series.len());
 			let mut cnt = &season.len() - &local_series.len();
+			//if episodes on server more then local
 			if cnt > 0 {
 				while cnt > 0 {
 					let episode = &season[&season.len() - &cnt];
@@ -113,7 +125,7 @@ If you whant some series - manualy edit the file of it in ~/.tvcheck/, but remem
 					let mut dwnl = homedir();
 					dwnl.push("Downloads");
 					let store = dwnl.to_str().unwrap();
-//					let command: String = "aria2c -x 5 ".to_string() + &season[&season.len() - &cnt] + " " + "-d " + store;
+					//starting download manager for this episode
 					let status = Command::new("aria2c")
 						.arg("-x 5")
 						.arg(&episode)
@@ -122,20 +134,21 @@ If you whant some series - manualy edit the file of it in ~/.tvcheck/, but remem
 						.status()
 						.unwrap_or_else(|i| {panic!("Failed to run process: {}", i)});
 					println!("Done. Status: {}", status);
+					notify();//&episode);
 				}
-				//add all episodes after downloading
+				//add all episodes after downloading to list file
 				let new = &filem.to_str().unwrap();
 				add(&new.to_string(), &path);
 			}
 			else { println!("No new episodes found for this series."); }
 		}
-		
+		//some sht happend
 		else {
 			println!("Wow, thats unexpected....");
 		     }
 	} }
 }
-
+//loading list from web
 fn get(list: &str) -> Vec<String>{
 	let client = Client::new();
 	let mut responce = client.get(list).header(Connection::close()).send().unwrap();
@@ -143,7 +156,7 @@ fn get(list: &str) -> Vec<String>{
 	responce.read_to_string(&mut body).unwrap();
 	body.lines().map(|s| s.to_owned()).collect::<Vec<_>>()
 }
-
+//read list from local list file
 fn read(name: &str) -> Vec<String>{
 	let mut open = match File::open(name){
 		Ok(file) => file,
@@ -156,7 +169,7 @@ fn read(name: &str) -> Vec<String>{
 		};
 	eps.lines().map(|s| s.to_owned()).collect::<Vec<_>>()
 }
-
+//write list to local file
 fn write(inpt: String, name: &str){
 	 let mut file = match File::create(name){
                 Ok(file) => file,
@@ -167,14 +180,14 @@ fn write(inpt: String, name: &str){
                 Err(_) => panic!("Unable to write to file!"),
         };
 }
-
+//check if file exists in path specified
 fn test(path: &String) -> bool {
 	match metadata(path) {
 		Ok(_) => true,
 		Err(_) => false,
 	}
 }
-
+//get ~ or %HOME% or %UserProfile% path from environement
 fn homedir() -> PathBuf {
 	let homedir: PathBuf = match env::home_dir() {
 		Some(ref p) => p.to_owned(),
@@ -182,7 +195,7 @@ fn homedir() -> PathBuf {
 	};
 	homedir
 }
-
+//create file and add each episode from new line
 fn add(filem: &String, path: &String) {
 	let mut file = match File::create(filem){
 		Ok(file) => file,
@@ -201,7 +214,7 @@ fn add(filem: &String, path: &String) {
 		println!("Added new Episode: {}", e);
 		}
 }
-
+//open existing file and append one line to it
 fn append(line: &String){
 	//getting path to list
 	let mut path = homedir();
@@ -215,30 +228,32 @@ fn append(line: &String){
 		.open(path)
 		.unwrap();
 	//Writing string to file
-//	let out = format!("{}", line);
-	if let Err(e) = writeln!(target, "{}", line) {
-		println!("{}", e);
-	}
+	match writeln!(target, "{}", line) {
+		Err(_) => panic!("Unable to write line to file!"),
+		Ok(_) => {},
+	};
 }
-
-fn notify(episode: &String) {
-	let mut title = episode.to_owned();
-	title.push_str(" downloaded.");
+//show system notification if download finished
+fn notify() {//episode: &String) {
+//	let mut title = episode.to_owned();
+//	title.push_str(" downloaded.");
+//	let message: &str = &title[..];
 	Notification::new()
-		.summary(&episode)
-		.action("play", "play")
-		.action("clicked", "play")
+		.summary("New episode downloaded by tvcheck!")
+//		.action("play", "play")
+//		.action("clicked", "play")
 //		.hint(Hint::Resident(true))
 		.show()
-		.unwrap()
-		.wait_for_action({|action|
-	match action {
-            "play" => {},//invoke vlc},
+		.unwrap();
+//		.wait_for_action({|action|
+	//TODO: add option for opening in video player
+//	match action {
+ //           "play" => {},//invoke vlc},
 //            "clicked" => {println!("that was correct")},
             // here "__closed" is a hardcoded keyword
-            "__closed" => (),
-            _ => ()
-        }
-    });
+//            "__closed" => (),
+//            _ => ()
+//        }
+//    });
 }
 
