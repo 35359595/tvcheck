@@ -35,13 +35,13 @@ fn main() {
 	match arg1 {
 		//show version info
 		"-v" => {
-			println!("version 0.3.4 build 021516.2155");
+			println!("version 0.3.5 build 021516.2226");
 			process::exit(0);
 		}
 		//show help
 		"-h" => {
 print!("
-||===============|Welcome to tvcheck 0.3.4|=================||
+||===============|Welcome to tvcheck 0.3.5|=================||
 ||===========|Author: Ivan Temchenko (C) (@ 2016)|==============||
 
 Options:
@@ -72,17 +72,19 @@ If you whant some specifiv episode - manualy edit the file of it in ~/.tvcheck/,
 			let file = &txt.trim_left_matches("http://fs.to/flist/").to_string();
 			let mut filem = homedir();
 			filem.push(".tvcheck");
-			filem.push(file);
-			let link = String::new();
-			let link = link + txt + "&quality=webdl";
+			let files = String::new();
+			let files = files + file + "&quality=webdl";
+			filem.push(files);
 			let target = &filem.to_str().unwrap();
-			//add series to list
-			append(&link);
 			//creating empty new file
 			match File::create(target) {
 				Ok(file) => file,
 				Err(_) => panic!("Unable to create new file!"),
 			};
+			let link = String::new();
+			let link = link + txt + "&quality=webdl";
+			//add series to list
+			append(&link);
 		}
 		_ => {}
 	}}
