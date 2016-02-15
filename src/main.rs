@@ -31,16 +31,18 @@ fn main() {
 	//checking program arguments
 	let args: Vec<String> = env::args().collect();
 	if args.len() > 1 {
+	let arg1 = &args[1][..];
+	match arg1 {
 		//show version info
-		if args[1] == "-v" {
-			println!("version 0.3.2 build 021416.0927");
+		"-v" => {
+			println!("version 0.3.3 build 021516.2111");
 			process::exit(0);
 		}
 		//show help
-		if args[1] == "-h" {
+		"-h" => {
 print!("
-||===============|Welcome to tvcheck 0.3.2|=================||
-||===========|Author: Ivan Temchenko (@ 2016)|==============||
+||===============|Welcome to tvcheck 0.3.3|=================||
+||===========|Author: Ivan Temchenko (C) (@ 2016)|==============||
 
 Options:
 
@@ -56,14 +58,14 @@ If you whant some specifiv episode - manualy edit the file of it in ~/.tvcheck/,
 			process::exit(0);
 		}
 		//add wtached series
-		if args[1] == "-add" {
+		 "-add" => {
                         println!("Adding: {}", args[args.len() - 1]);
 			let txt = &args[args.len() -1];
 			//adding new line to list
 			append(txt);
 		}
 		//adding new series
-		if args[1] == "-new" {
+		"-new" => {
 			println!("Adding new series");
 			//making path on new file
 			let txt = &args[&args.len() - 1];
@@ -80,7 +82,8 @@ If you whant some specifiv episode - manualy edit the file of it in ~/.tvcheck/,
 				Err(_) => panic!("Unable to create new file!"),
 			};
 		}
-	}
+		_ => {}
+	}}
 
 	//check if any series added
 	if !test(&list.to_string()) {
@@ -154,7 +157,11 @@ fn get(list: &str) -> Vec<String>{
 	let mut responce = client.get(list).header(Connection::close()).send().unwrap();
 	let mut body = String::new();	
 	responce.read_to_string(&mut body).unwrap();
-	body.lines().map(|s| s.to_owned()).collect::<Vec<_>>()
+	let result = body.lines().map(|s| s.to_owned()).collect::<Vec<_>>();
+	//check if we did get episodes or some crap
+	if &result.len() < &(30) { result }
+	else {panic!("Server returned some crap! Stopping to prevent files damage! Try later.");}
+
 }
 //read list from local list file
 fn read(name: &str) -> Vec<String>{
@@ -234,26 +241,9 @@ fn append(line: &String){
 	};
 }
 //show system notification if download finished
-fn notify() {//episode: &String) {
-//	let mut title = episode.to_owned();
-//	title.push_str(" downloaded.");
-//	let message: &str = &title[..];
+fn notify() {
 	Notification::new()
 		.summary("New episode downloaded by tvcheck!")
-//		.action("play", "play")
-//		.action("clicked", "play")
-//		.hint(Hint::Resident(true))
 		.show()
 		.unwrap();
-//		.wait_for_action({|action|
-	//TODO: add option for opening in video player
-//	match action {
- //           "play" => {},//invoke vlc},
-//            "clicked" => {println!("that was correct")},
-            // here "__closed" is a hardcoded keyword
-//            "__closed" => (),
-//            _ => ()
-//        }
-//    });
 }
-
