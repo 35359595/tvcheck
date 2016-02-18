@@ -1,4 +1,4 @@
-// TV Series checker by Ivan Temchenko 2016
+// TV Series checker by Ivan Temchenko (C) 2016
 // ivan.temchenko@yandex.ua
 
 extern crate hyper;
@@ -15,10 +15,9 @@ use notify_rust::Notification;
 use std::process;
 
 fn main() {
-	//set and check 
+	//set and check
 	let homem = homedir();
-	let home = &homem.to_str().unwrap();	
-
+	let home = &homem.to_str().unwrap();
 	if !test(&home.to_string()) { match create_dir(&home.to_string()) {
 				Err(why) => println!("! {:?}", why.kind()),
 				Ok(_) => {},
@@ -32,16 +31,21 @@ fn main() {
 	let args: Vec<String> = env::args().collect();
 	if args.len() > 1 {
 	let arg1 = &args[1][..];
+	let mut arg3 = "";
+	if args.len() > 3 { arg3 = &args[3][..]; }
 	match arg1 {
+		"-test" => {
+		process::exit(0);
+		}
 		//show version info
 		"-v" => {
-			println!("version 0.3.5 build 021516.2226");
+			println!("version 0.3.6 build 021816.2208");
 			process::exit(0);
 		}
 		//show help
 		"-h" => {
 print!("
-||===============|Welcome to tvcheck 0.3.5|=================||
+||===============|Welcome to tvcheck 0.3.6|=================||
 ||===========|Author: Ivan Temchenko (C) (@ 2016)|==============||
 
 Options:
@@ -68,12 +72,21 @@ If you whant some specifiv episode - manualy edit the file of it in ~/.tvcheck/,
 		"-new" => {
 			println!("Adding new series");
 			//making path on new file
-			let txt = &args[&args.len() - 1][..];
+			let txt = &args[2][..];
 			let file = &txt.trim_left_matches("http://fs.to/flist/").to_string();
 			let mut filem = homedir();
 			filem.push(".tvcheck");
 			let files = String::new();
-			let files = files + file + "&quality=webdl";
+		//quality setting
+		let mut quality = String::new();
+		if arg3 != "" {
+			match arg3 {
+				"sd" => { quality = "&quality=webdl".to_string(); }
+				"hd" => { quality = "&quality=1080p".to_string(); }
+				_ => { quality = "&quality=webdl".to_string(); }
+			}
+		}
+			let files = files + file + &quality;
 			filem.push(files);
 			let target = &filem.to_str().unwrap();
 			//creating empty new file
@@ -82,7 +95,7 @@ If you whant some specifiv episode - manualy edit the file of it in ~/.tvcheck/,
 				Err(_) => panic!("Unable to create new file!"),
 			};
 			let link = String::new();
-			let link = link + txt + "&quality=webdl";
+			let link = link + txt + &quality;
 			//add series to list
 			append(&link);
 		}
@@ -112,7 +125,7 @@ If you whant some specifiv episode - manualy edit the file of it in ~/.tvcheck/,
 		if !test(&target.to_string()) {
 			add(&target.to_string(), &path);
 		}
-	
+
 		//if watched - checking series list
 		if test(&target.to_string()) {
 			println!("Getting list from {}", &path);
@@ -159,7 +172,7 @@ If you whant some specifiv episode - manualy edit the file of it in ~/.tvcheck/,
 fn get(list: &str) -> Vec<String>{
 	let client = Client::new();
 	let mut responce = client.get(list).header(Connection::close()).send().unwrap();
-	let mut body = String::new();	
+	let mut body = String::new();
 	responce.read_to_string(&mut body).unwrap();
 	let result = body.lines().map(|s| s.to_owned()).collect::<Vec<_>>();
 	//check if we did get episodes or some crap
@@ -231,7 +244,7 @@ fn append(line: &String){
 	let mut path = homedir();
 	path.push(".tvcheck");
 	path.push("list");
-	let path = path.to_str().unwrap();	
+	let path = path.to_str().unwrap();
 	//opening file for writing and append
 	let mut target = OpenOptions::new()
 		.write(true)
