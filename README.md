@@ -18,6 +18,6 @@ Add without `&quality=webdl` and select quality by adding last parameter `sd` or
 To add new series without watched episoded (didnt watch any episode yet): `tvcheck -new http://linkto/list?folder=0001` Same here: no `&quality=webdl` and `sd` or `hd` for quality selection.
 
 #TODO
-- Gnome notificstions with libnotify;
+- [DONE]Gnome notificstions with libnotify; -Native RUST notification without libnotify!
 - Automatic opening options;
-- Parameters to manage series (Partly done with -add and -new options);
+- [Partly DONE]Parameters to manage series;

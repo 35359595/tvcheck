@@ -1,4 +1,4 @@
-// TV Series checker by Ivan Temchenko (C) 2016
+// TV Series checker by Ivan Temchenko 2016
 // ivan.temchenko@yandex.ua
 
 extern crate hyper;
@@ -14,10 +14,24 @@ use std::process::Command;
 use notify_rust::Notification;
 use std::process;
 
+struct Translation {
+	name: String,
+	code: String,
+}
+
+impl Translation {
+	fn new(mut self, name: String, code: String){
+		self.name = name;
+		self.code = code;
+	}
+}
+
 fn main() {
-	//set and check
+	//set and check 
+//	static TRANSLATIONS: Vec<String> = vec!["845654".to_string(), "859009".to_string(), "956575".to_string(), "858450".to_string(), "841521".to_string(), "857071".to_string(), "843507".to_string()];
 	let homem = homedir();
-	let home = &homem.to_str().unwrap();
+	let home = &homem.to_str().unwrap();	
+	let lostfilm = Translation { name: "lostfilm".to_string(), code: "845654".to_string() };
 	if !test(&home.to_string()) { match create_dir(&home.to_string()) {
 				Err(why) => println!("! {:?}", why.kind()),
 				Ok(_) => {},
@@ -35,17 +49,28 @@ fn main() {
 	if args.len() > 3 { arg3 = &args[3][..]; }
 	match arg1 {
 		"-test" => {
+//		println!("Translation: {} code is: {}", &lostfilm.name, &lostfilm.code);
+		let mut quality = String::new();
+		if arg3 != "" {
+			match arg3 {
+				"sd" => { quality = "&quality=webdl".to_string(); }
+				"hd" => { quality = "&quality=1080p".to_string(); }
+				_ => { quality = "&quality=webdl".to_string(); }
+			}
+		let mut ddd = "";
+		let ddd = ddd + "fwefwef" + &quality;
+		println!("{}", ddd);
 		process::exit(0);
-		}
+		}}
 		//show version info
 		"-v" => {
-			println!("version 0.3.7 build 022116.1534");
+			println!("version 0.3.5 build 021516.2226");
 			process::exit(0);
 		}
 		//show help
 		"-h" => {
 print!("
-||===============|Welcome to tvcheck 0.3.7|=================||
+||===============|Welcome to tvcheck 0.3.5|=================||
 ||===========|Author: Ivan Temchenko (C) (@ 2016)|==============||
 
 Options:
@@ -64,33 +89,28 @@ If you whant some specifiv episode - manualy edit the file of it in ~/.tvcheck/,
 		//add wtached series
 		 "-add" => {
                         println!("Adding: {}", args[args.len() - 1]);
-			let txt: String = args[2].to_string();
-			let mut quality = String::new();
-			match arg3 {
-				"sd" => { quality = "&quality=webdl".to_string(); },
-				"hd" => { quality = "&quality=1080p".to_string(); },
-				_ => { quality = "&quality=webdl".to_string(); }
-			}
-			let nline = txt + &quality[..];
+			let txt = &args[args.len() -1];
 			//adding new line to list
-			append(&nline);
+			append(txt);
 		}
 		//adding new series
 		"-new" => {
 			println!("Adding new series");
 			//making path on new file
-			let txt = &args[2][..];
+			let txt = &args[&args.len() - 1][..];
 			let file = &txt.trim_left_matches("http://fs.to/flist/").to_string();
 			let mut filem = homedir();
 			filem.push(".tvcheck");
 			let files = String::new();
 		//quality setting
 		let mut quality = String::new();
+		if arg3 != "" {
 			match arg3 {
 				"sd" => { quality = "&quality=webdl".to_string(); }
 				"hd" => { quality = "&quality=1080p".to_string(); }
 				_ => { quality = "&quality=webdl".to_string(); }
 			}
+		}
 			let files = files + file + &quality;
 			filem.push(files);
 			let target = &filem.to_str().unwrap();
@@ -130,7 +150,7 @@ If you whant some specifiv episode - manualy edit the file of it in ~/.tvcheck/,
 		if !test(&target.to_string()) {
 			add(&target.to_string(), &path);
 		}
-
+	
 		//if watched - checking series list
 		if test(&target.to_string()) {
 			println!("Getting list from {}", &path);
@@ -157,9 +177,8 @@ If you whant some specifiv episode - manualy edit the file of it in ~/.tvcheck/,
 						.arg("-d")
 						.arg(store)
 						.status()
-						.unwrap_or_else(|i| {panic!("Failed to run aria2c: {}", i)});
-					if status != status {}; //to ignore return of process
-					//println!("Done. Status: {}", status);
+						.unwrap_or_else(|i| {panic!("Failed to run process: {}", i)});
+					println!("Done. Status: {}", status);
 					notify();//&episode);
 				}
 				//add all episodes after downloading to list file
@@ -178,12 +197,12 @@ If you whant some specifiv episode - manualy edit the file of it in ~/.tvcheck/,
 fn get(list: &str) -> Vec<String>{
 	let client = Client::new();
 	let mut responce = client.get(list).header(Connection::close()).send().unwrap();
-	let mut body = String::new();
+	let mut body = String::new();	
 	responce.read_to_string(&mut body).unwrap();
 	let result = body.lines().map(|s| s.to_owned()).collect::<Vec<_>>();
 	//check if we did get episodes or some crap
 	if &result.len() < &(30) { result }
-	else {panic!("Server returned some crap! Stopping to prevent files damage! Try again later.");}
+	else {panic!("Server returned some crap! Stopping to prevent files damage! Try later.");}
 
 }
 //read list from local list file
@@ -239,7 +258,7 @@ fn add(filem: &String, path: &String) {
 			};
 			match file.write_all(b"\n"){
 				Ok(file) => file,
-				Err(_) => panic!("failed to add new line"),
+				Err(_) => panic!("fucking new line!"),
 			};
 		println!("Added new Episode: {}", e);
 		}
@@ -250,7 +269,7 @@ fn append(line: &String){
 	let mut path = homedir();
 	path.push(".tvcheck");
 	path.push("list");
-	let path = path.to_str().unwrap();
+	let path = path.to_str().unwrap();	
 	//opening file for writing and append
 	let mut target = OpenOptions::new()
 		.write(true)
