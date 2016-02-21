@@ -12,10 +12,23 @@ run `tvcheck -h` for help menu of `tvcheck -v` for version info.
 
 First launch will ask for link to `"Список серий"` from fs.to
 
-To add new series with watched episoded: `tvcheck -add http://linkto/list?folder=0001` Warning: adding from bash with full link generates `&` to split it into two commands and causes malfunction.
-Add without `&quality=webdl` and select quality by adding last parameter `sd` or `hd`
+To add new series with watched episoded: `tvcheck -a or --add  with link in quotes "http://linkto/list?folder=0001&quality=webdl"`.
 
-To add new series without watched episoded (didnt watch any episode yet): `tvcheck -new http://linkto/list?folder=0001` Same here: no `&quality=webdl` and `sd` or `hd` for quality selection.
+To add new series without watched episoded (didnt watch any episode yet): `tvcheck -n or --new  with link in quotes "http://linkto/list?folder=0001&quality=hdtv"`.
+
+#WHATSNEW
+
+v.0.3.8
+
+	-Added correct argumen parse for various quality links;
+
+	-Adding new and seen series now in separate functions;
+
+	-Help and about now correctly displaying for all arguments;
+
+v.0.3.7
+	
+	-Bug fixe for add function;
 
 #TODO
 - [DONE]Gnome notificstions with libnotify; -Native RUST notification without libnotify!

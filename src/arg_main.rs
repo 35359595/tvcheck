@@ -3,18 +3,16 @@
 
 extern crate hyper;
 extern crate notify_rust;
-extern crate clap;
 use std::io;
 use std::io::prelude::*;
-use std::fs::{ File, metadata, create_dir, OpenOptions };
+use std::fs::{File, metadata, create_dir, OpenOptions};
 use hyper::Client;
 use hyper::header::Connection;
 use std::env;
 use std::path::PathBuf;
 use std::process::Command;
 use notify_rust::Notification;
-//use std::process;
-use clap::{ App, Arg, SubCommand, ArgMatches };
+use std::process;
 
 fn main() {
 	//set and check
@@ -23,20 +21,91 @@ fn main() {
 	if !test(&home.to_string()) { match create_dir(&home.to_string()) {
 				Err(why) => println!("! {:?}", why.kind()),
 				Ok(_) => {},
-			}}
+			} }
 	let mut listm = homedir();
 	listm.push(".tvcheck");
 	listm.push("list");
 	let list = &listm.to_str().unwrap();
-	
-	//arg parsing
-	let matches = parse_args();
-	//if add
-	let a = matches.value_of("add").unwrap_or("");
-		if a != "" { add_series(a.to_string()); }
-	//if new
-	let n = matches.value_of("new").unwrap_or("");
-		if n != "" { new_series(n.to_string()); }
+
+	//checking program arguments
+	let args: Vec<String> = env::args().collect();
+	if args.len() > 1 {
+	let arg1 = &args[1][..];
+	let mut arg3 = "";
+	if args.len() > 3 { arg3 = &args[3][..]; }
+	match arg1 {
+		"-test" => {
+		process::exit(0);
+		}
+		//show version info
+		"-v" => {
+			println!("version 0.3.7 build 022116.1534");
+			process::exit(0);
+		}
+		//show help
+		"-h" => {
+print!("
+||===============|Welcome to tvcheck 0.3.7|=================||
+||===========|Author: Ivan Temchenko (C) (@ 2016)|==============||
+
+Options:
+
+tvcheck			: Run without parameters to check new episodes of added series;
+	-add URL	: add series with all watched episodes;
+	-new URL	: add new series you did not watched yet;
+	-v		: version info;
+	-h		: show this help message;
+
+If you whant some specifiv episode - manualy edit the file of it in ~/.tvcheck/, but remember that series must remain in line and there is NO support to download series from the middle (2-4 of 1-11 etc.)
+||==========================================================||
+");
+			process::exit(0);
+		}
+		//add wtached series
+		 "-add" => {
+                        println!("Adding: {}", args[args.len() - 1]);
+			let txt: String = args[2].to_string();
+			let mut quality = String::new();
+			match arg3 {
+				"sd" => { quality = "&quality=webdl".to_string(); },
+				"hd" => { quality = "&quality=1080p".to_string(); },
+				_ => { quality = "&quality=webdl".to_string(); }
+			}
+			let nline = txt + &quality[..];
+			//adding new line to list
+			append(&nline);
+		}
+		//adding new series
+		"-new" => {
+			println!("Adding new series");
+			//making path on new file
+			let txt = &args[2][..];
+			let file = &txt.trim_left_matches("http://fs.to/flist/").to_string();
+			let mut filem = homedir();
+			filem.push(".tvcheck");
+			let files = String::new();
+		//quality setting
+		let mut quality = String::new();
+			match arg3 {
+				"sd" => { quality = "&quality=webdl".to_string(); }
+				"hd" => { quality = "&quality=1080p".to_string(); }
+				_ => { quality = "&quality=webdl".to_string(); }
+			}
+			let files = files + file + &quality;
+			filem.push(files);
+			let target = &filem.to_str().unwrap();
+			//creating empty new file
+			match File::create(target) {
+				Ok(file) => file,
+				Err(_) => panic!("Unable to create new file!"),
+			};
+			let link = String::new();
+			let link = link + txt + &quality;
+			//add series to list
+			append(&link);
+		}
+		_ => {}
+	}}
 
 	//check if any series added
 	if !test(&list.to_string()) {
@@ -200,68 +269,4 @@ fn notify() {
 		.summary("New episode downloaded by tvcheck!")
 		.show()
 		.unwrap();
-}
-
-//add wtached series
-fn add_series(txt: String){
-	println!("Adding: {}", &txt);
-	//adding new line to list
-	append(&txt);
-}
-
-//adding new series
-fn new_series(txt: String){
-	println!("Adding new series: {}", &txt);
-	//making path on new file
-	let file = &txt.trim_left_matches("http://fs.to/flist/").to_string();
-	let mut filem = homedir();
-	filem.push(".tvcheck");
-	filem.push(file);
-	let target = &filem.to_str().unwrap();
-	//creating empty new file
-	match File::create(target) {
-		Ok(file) => file,
-		Err(_) => panic!("Unable to create new file!"),
-	};
-	let link = String::new();
-	let link = link + &txt[..];
-		//add series to list
-	append(&link);
-	
-}
-
-//argumet parser function
-fn parse_args<'a>() -> ArgMatches<'a> {
-	let matches = App::new("TV Episode Check")
-		.version("0.3.8 build 21022016.2018")
-		.author("Ivan Temchenko <35359595i@gmail.com>")
-		.about("
-||===============|Welcome to tvcheck 0.3.8|=================||
-||===========|Author: Ivan Temchenko (C) (@ 2016)|==============||
-
-Options:
-
-tvcheck			: Run without parameters to check new episodes of added series;
-	-add URL	: add series with all watched episodes;
-	-new URL	: add new series you did not watched yet;
-	-v		: version info;
-	-h		: show this help message;
-
-If you whant some specifiv episode - manualy edit the file of it in ~/.tvcheck/, but remember that series must remain in line and there is NO support to download series from the middle (2-4 of 1-11 etc.)
-||==========================================================||
-")
-		.arg(Arg::with_name("add")
-			.short("a")
-			.long("add")
-			.help("Adds series to list with all watched episodes from a filelist link.")
-			.value_name("LINK")
-			.takes_value(true))
-		.arg(Arg::with_name("new")
-			.short("n")
-			.long("new")
-			.help("Adds series to list and downloads all episodes from a filelist link.")
-			.value_name("LINK")
-			.takes_value(true))
-		.get_matches();
-	matches
 }

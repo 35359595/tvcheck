@@ -1,9 +1,10 @@
 [package]
 authors = ["Ivan Temchenko <35359595i@gmail.com>"]
 name = "tvcheck"
-version = "0.3.7"
+version = "0.3.8"
 
 [dependencies]
+clap = "2.1.1"
 hyper = "0.7.2"
 notify-rust = "3.0.3"
 time = "0.1.34"
