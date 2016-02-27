@@ -1,5 +1,4 @@
 // TV Series checker by Ivan Temchenko (C) 2016
-// ivan.temchenko@yandex.ua
 
 extern crate hyper;
 extern crate notify_rust;
@@ -64,15 +63,15 @@ fn main() {
 
 		//if watched - checking series list
 		if test(&target.to_string()) {
-			println!("Getting list from {}", &path);
 			let season = get(&path);
-			println!("Got {} episodes", &season.len());
-			println!("Getting watched list from {}", &target);
+			println!("{} episodes on server.", &season.len());
 			let local_series = read(&target);
-			println!("Got {} watched episodes", &local_series.len());
+			println!("{} watched episodes.", &local_series.len());
 			let mut cnt = &season.len() - &local_series.len();
+			if &season.len() < &local_series.len() { println!("0 series from server. Possibly 
+neet to reduwnload link!"); }
 			//if episodes on server more then local
-			if cnt > 0 {
+			else if cnt > 0 {
 				while cnt > 0 {
 					let episode = &season[&season.len() - &cnt];
 					println!("New episode! {}", &episode);
