@@ -12,8 +12,9 @@ use std::env;
 use std::path::PathBuf;
 use std::process::Command;
 use notify_rust::Notification;
-//use std::process;
-use clap::{ App, Arg, SubCommand, ArgMatches };
+use clap::{ App, Arg, ArgMatches };
+
+const CUT: &'static str = "/";
 
 fn main() {
 	//set and check
@@ -27,7 +28,7 @@ fn main() {
 	listm.push(".tvcheck");
 	listm.push("list");
 	let list = &listm.to_str().unwrap();
-	
+
 	//arg parsing
 	let matches = parse_args();
 	//if add
@@ -68,8 +69,7 @@ fn main() {
 			let local_series = read(&target);
 			println!("{} watched episodes.", &local_series.len());
 			let mut cnt = &season.len() - &local_series.len();
-			if &season.len() < &local_series.len() { println!("0 series from server. Possibly 
-neet to reduwnload link!"); }
+			if &season.len() < &local_series.len() { println!("0 series from server. Possibly, need to redownload link!"); }
 			//if episodes on server more then local
 			else if cnt > 0 {
 				while cnt > 0 {
@@ -85,16 +85,16 @@ neet to reduwnload link!"); }
 						.arg("-x 5")
 						.arg(&episode)
 						.arg("-d")
-						.arg(store)
+						.arg(&store)
 						.status()
 						.unwrap_or_else(|i| {panic!("Failed to run aria2c: {}", i)});
 					if status != status {}; //to ignore return of process
 					//println!("Done. Status: {}", status);
-					notify();//&episode);
 				}
 				//add all episodes after downloading to list file
 				let new = &filem.to_str().unwrap();
-				add(&new.to_string(), &path);
+				let name = add(&new.to_string(), &path);
+				notify(name);
 			}
 			else { println!("No new episodes found for this series."); }
 		}
@@ -156,14 +156,14 @@ fn homedir() -> PathBuf {
 	homedir
 }
 //create file and add each episode from new line
-fn add(filem: &String, path: &String) {
+fn add(filem: &String, path: &String) -> String {
 	let mut file = match File::create(filem){
 		Ok(file) => file,
 		Err(_) => panic!("Unable to create file!"),
 	};
 	let season = get(&path);
-		for e in season {
-			match file.write_all(&e.as_bytes()){
+		for e in &season {
+			match file.write_all(e.as_bytes()){
 				Ok(file) => file,
 				Err(_) => panic!("Unable to write to file!"),
 			};
@@ -171,8 +171,16 @@ fn add(filem: &String, path: &String) {
 				Ok(file) => file,
 				Err(_) => panic!("failed to add new line"),
 			};
-		println!("Added new Episode: {}", e);
 		}
+		//Open function?
+		let ep = &season[&season.len() - 1];
+		let mut ep = &ep[..];
+		while ep.contains(CUT) {
+			ep = &ep[1..];
+		}
+
+		println!("Added new Episode: {}", &ep);
+		ep.to_string()
 }
 //open existing file and append one line to it
 fn append(line: &String){
@@ -193,12 +201,37 @@ fn append(line: &String){
 		Ok(_) => {},
 	};
 }
+
+//play downloaded series?
+fn playit(ep: String){
+	let status = Command::new("vlc")
+		.arg(ep)
+		.status()
+		.unwrap_or_else(|i| {panic!("Failed to run aria2c: {}", i)});
+	if status != status {}; //to ignore return of process
+}
+
 //show system notification if download finished
-fn notify() {
+fn notify(ep: String) {
+	let s = &ep[..];
+	let mut episode = homedir();
+	episode.push("Downloads");
+	episode.push(&s);
+	let episode = episode.to_str().unwrap();
 	Notification::new()
 		.summary("New episode downloaded by tvcheck!")
+		.body(&s)
+		.action("default", "default")
+		.action("play", "Play")
 		.show()
-		.unwrap();
+		.unwrap()
+		.wait_for_action(|action|
+			match action {
+				"default" => {},
+				"play" => { playit(episode.to_string()) },
+				"__closed" => {},
+				_ => ()
+			});
 }
 
 //add wtached series
@@ -226,25 +259,21 @@ fn new_series(txt: String){
 	let link = link + &txt[..];
 		//add series to list
 	append(&link);
-	
+
 }
 
 //argumet parser function
 fn parse_args<'a>() -> ArgMatches<'a> {
 	let matches = App::new("TV Episode Check")
-		.version("0.3.8 build 21022016.2018")
+		.version("0.4.0 build 29022016.2142")
 		.author("Ivan Temchenko <35359595i@gmail.com>")
 		.about("
-||===============|Welcome to tvcheck 0.3.8|=================||
+||===============|Welcome to tvcheck 0.4.4|=================||
 ||===========|Author: Ivan Temchenko (C) (@ 2016)|==============||
 
 Options:
 
 tvcheck			: Run without parameters to check new episodes of added series;
-	-add URL	: add series with all watched episodes;
-	-new URL	: add new series you did not watched yet;
-	-v		: version info;
-	-h		: show this help message;
 
 If you whant some specifiv episode - manualy edit the file of it in ~/.tvcheck/, but remember that series must remain in line and there is NO support to download series from the middle (2-4 of 1-11 etc.)
 ||==========================================================||
