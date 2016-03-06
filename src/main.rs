@@ -88,13 +88,20 @@ fn main() {
 						.arg(&store)
 						.status()
 						.unwrap_or_else(|i| {panic!("Failed to run aria2c: {}", i)});
-					if status != status {}; //to ignore return of process
-					//println!("Done. Status: {}", status);
+                    let success: i32 = 0;
+					//if status != status {}; //to ignore return of process
+                    if &status.code().unwrap() != &success { println!("Download failed with code: {}", status.code().unwrap()); }
+                    else{
+                            let new = &filem.to_str().unwrap();
+                            let name = add(&new.to_string(), &path);
+                            notify(name);
+                        }
+                    //println!("Done. Status: {}", status);
 				}
 				//add all episodes after downloading to list file
-				let new = &filem.to_str().unwrap();
-				let name = add(&new.to_string(), &path);
-				notify(name);
+//				let new = &filem.to_str().unwrap();
+//				let name = add(&new.to_string(), &path);
+//				notify(name);
 			}
 			else { println!("No new episodes found for this series."); }
 		}
