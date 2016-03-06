@@ -27,7 +27,7 @@ v.0.4.0
 
 v.0.3.9
 
-	-Minor bug changes;
+	-Minor bug fixes;
 
 v.0.3.8
 
@@ -43,5 +43,5 @@ v.0.3.7
 
 #TODO
 - [DONE]Gnome notificstions with libnotify; -Native RUST notification without libnotify!
-- Automatic opening options;
-- [Partly DONE]Parameters to manage series;
+- [DONE]Automatic opening options (play button from notification - opens episode with VLC);
+- [Partly DONE]Parameters to manage series (currently no need in other parameters);
