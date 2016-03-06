@@ -18,6 +18,17 @@ To add new series without watched episoded (didnt watch any episode yet): `tvche
 
 #WHATSNEW
 
+v.0.4.0
+	-Rework of adding function;
+	-Rework of notification function: added episode name to title and Play button;
+	-Added Play function to play downloaded episode after download;
+	-Rework of treading the result of download - check for download complete.
+	-Minor bug fixes;
+
+v.0.3.9
+
+	-Minor bug changes;
+
 v.0.3.8
 
 	-Added correct argumen parse for various quality links;
