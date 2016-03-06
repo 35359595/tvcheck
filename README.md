@@ -19,10 +19,15 @@ To add new series without watched episoded (didnt watch any episode yet): `tvche
 #WHATSNEW
 
 v.0.4.0
+
 	-Rework of adding function;
+
 	-Rework of notification function: added episode name to title and Play button;
+
 	-Added Play function to play downloaded episode after download;
+
 	-Rework of treading the result of download - check for download complete.
+
 	-Minor bug fixes;
 
 v.0.3.9
@@ -42,6 +47,9 @@ v.0.3.7
 	-Bug fixe for add function;
 
 #TODO
+
 - [DONE]Gnome notificstions with libnotify; -Native RUST notification without libnotify!
+
 - [DONE]Automatic opening options (play button from notification - opens episode with VLC);
+
 - [Partly DONE]Parameters to manage series (currently no need in other parameters);
