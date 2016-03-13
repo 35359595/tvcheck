@@ -37,6 +37,8 @@ fn main() {
 	//if new
 	let n = matches.value_of("new").unwrap_or("");
 		if n != "" { new_series(n.to_string()); }
+    //if remove
+    if matches.is_present("remove"){ remove(); }
 
 	//check if any series added
 	if !test(&list.to_string()) {
@@ -50,7 +52,7 @@ fn main() {
 	let vlist = read(&list.to_string());
 	for path in vlist {
 	 if &path != "" {
-		let file = &path.trim_left_matches("http://fs.to/flist/").to_string();
+		let file = &path.trim_left_matches("http://fs.to/flist/").trim_left_matches("http://brb.to/flist/").to_string();
 		let mut filem = homedir();
 		filem.push(".tvcheck");
 		filem.push(file);
@@ -88,13 +90,15 @@ fn main() {
 						.arg(&store)
 						.status()
 						.unwrap_or_else(|i| {panic!("Failed to run aria2c: {}", i)});
-					if status != status {}; //to ignore return of process
-					//println!("Done. Status: {}", status);
+                    let success: i32 = 0;
+					//if status != status {}; //to ignore return of process
+                    if &status.code().unwrap() != &success { println!("Download failed with code: {}", status.code().unwrap()); }
+                    else{
+                            let new = &filem.to_str().unwrap();
+                            let name = add(&new.to_string(), &path);
+                            notify(name);
+                        }
 				}
-				//add all episodes after downloading to list file
-				let new = &filem.to_str().unwrap();
-				let name = add(&new.to_string(), &path);
-				notify(name);
 			}
 			else { println!("No new episodes found for this series."); }
 		}
@@ -262,6 +266,47 @@ fn new_series(txt: String){
 
 }
 
+//remove ended season
+fn remove() {
+    let mut home = homedir();
+    home.push(".tvcheck/list");
+    let home = home.to_str().unwrap();
+    let mut list = read(&home);
+    let mut count = 0;
+    for series in &list{
+        let file = &series.trim_left_matches("http://fs.to/flist/").trim_left_matches("http://brb.to/flist/").to_string();
+        let mut lf = homedir();
+        lf.push(".tvcheck");
+        lf.push(file);
+        let lf = lf.to_str().unwrap();
+        let names = read(&lf);
+    
+        //if at leest 1 episode is listed
+        
+        if names.len() > 0 {
+            let name = names[0].trim_left_matches("http://fs.to/").trim_left_matches("http://brb.to/");
+            let size = name.len();
+            println!("{}: {}", &count, &name[66..size].replace("."," "));
+            count += 1;
+        }
+    }
+ 
+    //reading the selection
+
+    let mut choice = String::new();
+    println!("Chose a seriec to remove (by number):");
+    io::stdin().read_line(&mut choice).ok().expect("Failed to read choice to remove.");
+    let choice: usize = choice.trim().parse().ok().expect("Not a number");
+
+    //removing selection
+
+    let removed = list.remove(choice);
+    println!("Removing {}", &removed);
+    let new = list.as_slice().join("\n");
+    write(new, &home);
+    
+}
+
 //argumet parser function
 fn parse_args<'a>() -> ArgMatches<'a> {
 	let matches = App::new("TV Episode Check")
@@ -290,6 +335,11 @@ If you whant some specifiv episode - manualy edit the file of it in ~/.tvcheck/,
 			.help("Adds series to list and downloads all episodes from a filelist link.")
 			.value_name("LINK")
 			.takes_value(true))
+        .arg(Arg::with_name("remove")
+            .short("r")
+            .long("remove")
+            .help("Remove ended series from list (watched episodes list will remain unremoved)")
+            .takes_value(false))
 		.get_matches();
 	matches
 }
