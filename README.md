@@ -16,7 +16,33 @@ To add new series with watched episoded: `tvcheck -a or --add  with link in quot
 
 To add new series without watched episoded (didnt watch any episode yet): `tvcheck -n or --new  with link in quotes "http://linkto/list?folder=0001&quality=hdtv"`.
 
+To remove series: `tvcheck -r or --remove` and enter the number of series to remove from shown list.
+
 #WHATSNEW
+
+v.0.4.5
+
+	-Fix for new function;
+
+	-Bugfix for file creations;
+
+	-Minor bug fixes;
+
+v.0.4.0
+
+	-Rework of adding function;
+
+	-Rework of notification function: added episode name to title and Play button;
+
+	-Added Play function to play downloaded episode after download;
+
+	-Rework of treading the result of download - check for download complete.
+
+	-Minor bug fixes;
+
+v.0.3.9
+
+	-Minor bug fixes;
 
 v.0.3.8
 
@@ -31,6 +57,9 @@ v.0.3.7
 	-Bug fixe for add function;
 
 #TODO
+
 - [DONE]Gnome notificstions with libnotify; -Native RUST notification without libnotify!
-- Automatic opening options;
-- [Partly DONE]Parameters to manage series;
+
+- [DONE]Automatic opening options (play button from notification - opens episode with VLC);
+
+- [Partly DONE]Parameters to manage series (currently no need in other parameters);

@@ -249,7 +249,7 @@ fn add_series(txt: String){
 fn new_series(txt: String){
 	println!("Adding new series: {}", &txt);
 	//making path on new file
-	let file = &txt.trim_left_matches("http://fs.to/flist/").to_string();
+	let file = &txt.trim_left_matches("http://fs.to/flist/").trim_left_matches("http://brb.to/flist/").to_string();
 	let mut filem = homedir();
 	filem.push(".tvcheck");
 	filem.push(file);
@@ -257,7 +257,7 @@ fn new_series(txt: String){
 	//creating empty new file
 	match File::create(target) {
 		Ok(file) => file,
-		Err(_) => panic!("Unable to create new file!"),
+		Err(_) => panic!("Unable to create new series file! {}", target),
 	};
 	let link = String::new();
 	let link = link + &txt[..];
@@ -310,10 +310,10 @@ fn remove() {
 //argumet parser function
 fn parse_args<'a>() -> ArgMatches<'a> {
 	let matches = App::new("TV Episode Check")
-		.version("0.4.0 build 29022016.2142")
+		.version("0.4.5 build 28032016.1024")
 		.author("Ivan Temchenko <35359595i@gmail.com>")
 		.about("
-||===============|Welcome to tvcheck 0.4.4|=================||
+||===============|Welcome to tvcheck 0.4.5|=================||
 ||===========|Author: Ivan Temchenko (C) (@ 2016)|==============||
 
 Options:
