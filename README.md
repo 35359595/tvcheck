@@ -18,7 +18,15 @@ To add new series without watched episoded (didnt watch any episode yet): `tvche
 
 To remove series: `tvcheck -r or --remove` and enter the number of series to remove from shown list.
 
+To do suppress notification showing use -s or --silent.
+
+All parameters can be grouped. Like -as or -ns
+
 #WHATSNEW
+
+v.0.4.6
+
+	-Option 'Silent\Quiet' added;
 
 v.0.4.5
 

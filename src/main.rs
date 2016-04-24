@@ -96,7 +96,9 @@ fn main() {
                     else{
                             let new = &filem.to_str().unwrap();
                             let name = add(&new.to_string(), &path);
-                            notify(name);
+                            if matches.is_present("silent") != true {
+                                notify(name);
+                            }
                         }
 				}
 			}
@@ -310,10 +312,10 @@ fn remove() {
 //argumet parser function
 fn parse_args<'a>() -> ArgMatches<'a> {
 	let matches = App::new("TV Episode Check")
-		.version("0.4.5 build 28032016.1024")
+		.version("0.4.6 build 24042016.0930")
 		.author("Ivan Temchenko <35359595i@gmail.com>")
 		.about("
-||===============|Welcome to tvcheck 0.4.5|=================||
+||===============|Welcome to tvcheck 0.4.6|=================||
 ||===========|Author: Ivan Temchenko (C) (@ 2016)|==============||
 
 Options:
@@ -339,6 +341,11 @@ If you whant some specifiv episode - manualy edit the file of it in ~/.tvcheck/,
             .short("r")
             .long("remove")
             .help("Remove ended series from list (watched episodes list will remain unremoved)")
+            .takes_value(false))
+        .arg(Arg::with_name("silent")
+            .short("s")
+            .long("silent")
+            .help("Dont show any notifications. Silent/quiet mode.")
             .takes_value(false))
 		.get_matches();
 	matches
