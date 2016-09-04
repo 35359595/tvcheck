@@ -24,6 +24,10 @@ All parameters can be grouped. Like -as or -ns
 
 #WHATSNEW
 
+v.0.4.7
+	
+	-Bugfix for -add and -new functions - correct lines added.
+
 v.0.4.6
 
 	-Option 'Silent\Quiet' added;

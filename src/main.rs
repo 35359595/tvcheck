@@ -50,7 +50,7 @@ fn main() {
 	}
 	//if list exists - process each series
 	let vlist = read(&list.to_string());
-	for path in vlist {
+	for path in vlist { //path - each series episode list file
 	 if &path != "" {
 		let file = &path.trim_left_matches("http://fs.to/flist/").trim_left_matches("http://brb.to/flist/").to_string();
 		let mut filem = homedir();
@@ -67,11 +67,13 @@ fn main() {
 		//if watched - checking series list
 		if test(&target.to_string()) {
 			let season = get(&path);
-			println!("{} episodes on server.", &season.len());
 			let local_series = read(&target);
-			println!("{} watched episodes.", &local_series.len());
+			println!("{} episodes on server. {} watched episodes.", &season.len(), &local_series.len());
 			let mut cnt = &season.len() - &local_series.len();
+
+			//if list from server is empty
 			if &season.len() < &local_series.len() { println!("0 series from server. Possibly, need to redownload link!"); }
+
 			//if episodes on server more then local
 			else if cnt > 0 {
 				while cnt > 0 {
@@ -82,6 +84,7 @@ fn main() {
 					let mut dwnl = homedir();
 					dwnl.push("Downloads");
 					let store = dwnl.to_str().unwrap();
+
 					//starting download manager for this episode
 					let status = Command::new("aria2c")
 						.arg("-x 5")
@@ -90,14 +93,15 @@ fn main() {
 						.arg(&store)
 						.status()
 						.unwrap_or_else(|i| {panic!("Failed to run aria2c: {}", i)});
-                    let success: i32 = 0;
-					//if status != status {}; //to ignore return of process
+
+                    let success: i32 = 0; //download status checker
                     if &status.code().unwrap() != &success { println!("Download failed with code: {}", status.code().unwrap()); }
                     else{
                             let new = &filem.to_str().unwrap();
-                            let name = add(&new.to_string(), &path);
+                            //let name = add(&new.to_string(), &path); //WTF???? why add?
+							append(&new.to_string(), &path[..]);
                             if matches.is_present("silent") != true {
-                                notify(name);
+                                notify(&filem.to_str().unwrap());
                             }
                         }
 				}
@@ -162,7 +166,7 @@ fn homedir() -> PathBuf {
 	homedir
 }
 //create file and add each episode from new line
-fn add(filem: &String, path: &String) -> String {
+fn add(filem: & String, path: &String) -> String {
 	let mut file = match File::create(filem){
 		Ok(file) => file,
 		Err(_) => panic!("Unable to create file!"),
@@ -176,7 +180,7 @@ fn add(filem: &String, path: &String) -> String {
 			match file.write_all(b"\n"){
 				Ok(file) => file,
 				Err(_) => panic!("failed to add new line"),
-			};
+ 			};
 		}
 		//Open function?
 		let ep = &season[&season.len() - 1];
@@ -189,20 +193,30 @@ fn add(filem: &String, path: &String) -> String {
 		ep.to_string()
 }
 //open existing file and append one line to it
-fn append(line: &String){
+fn append(line: &String, path_given: &str){
+
 	//getting path to list
 	let mut path = homedir();
 	path.push(".tvcheck");
-	path.push("list");
+	if path_given != ""{ path.push(path_given); }
+	else { path.push("list"); }
 	let path = path.to_str().unwrap();
+
+	//adding new line to text
+    let mut text = String::new();
+    text.push_str(line);
+
 	//opening file for writing and append
-	let mut target = OpenOptions::new()
+	let target = OpenOptions::new()
+        .read(true)
 		.write(true)
+		.create(true)
 		.append(true)
 		.open(path)
 		.unwrap();
+
 	//Writing string to file
-	match writeln!(target, "{}", line) {
+	match writeln!(&target, "{}", text) {
 		Err(_) => panic!("Unable to write line to file!"),
 		Ok(_) => {},
 	};
@@ -218,8 +232,8 @@ fn playit(ep: String){
 }
 
 //show system notification if download finished
-fn notify(ep: String) {
-	let s = &ep[..];
+fn notify(s: &str) {
+	//let s = &ep[..];
 	let mut episode = homedir();
 	episode.push("Downloads");
 	episode.push(&s);
@@ -244,28 +258,23 @@ fn notify(ep: String) {
 fn add_series(txt: String){
 	println!("Adding: {}", &txt);
 	//adding new line to list
-	append(&txt);
+	append(&txt, &"".to_string());
 }
 
 //adding new series
 fn new_series(txt: String){
+
 	println!("Adding new series: {}", &txt);
+
 	//making path on new file
-	let file = &txt.trim_left_matches("http://fs.to/flist/").trim_left_matches("http://brb.to/flist/").to_string();
 	let mut filem = homedir();
 	filem.push(".tvcheck");
-	filem.push(file);
-	let target = &filem.to_str().unwrap();
-	//creating empty new file
-	match File::create(target) {
-		Ok(file) => file,
-		Err(_) => panic!("Unable to create new series file! {}", target),
-	};
-	let link = String::new();
-	let link = link + &txt[..];
-		//add series to list
-	append(&link);
+	filem.push(&txt.trim_left_matches("http://fs.to/flist/").trim_left_matches("http://brb.to/flist/").to_string());
 
+	//converting to str and than ri
+	let target = &filem.to_str().unwrap();
+
+	append(&target.to_string(), &"");
 }
 
 //remove ended season
@@ -282,9 +291,9 @@ fn remove() {
         lf.push(file);
         let lf = lf.to_str().unwrap();
         let names = read(&lf);
-    
+
         //if at leest 1 episode is listed
-        
+
         if names.len() > 0 {
             let name = names[0].trim_left_matches("http://fs.to/").trim_left_matches("http://brb.to/");
             let size = name.len();
@@ -292,7 +301,7 @@ fn remove() {
             count += 1;
         }
     }
- 
+
     //reading the selection
 
     let mut choice = String::new();
@@ -306,16 +315,18 @@ fn remove() {
     println!("Removing {}", &removed);
     let new = list.as_slice().join("\n");
     write(new, &home);
-    
+
+    //exit after done
+    std::process::exit(0);
 }
 
 //argumet parser function
 fn parse_args<'a>() -> ArgMatches<'a> {
 	let matches = App::new("TV Episode Check")
-		.version("0.4.6 build 24042016.0930")
+		.version("0.5.0 build 04092016.1300")
 		.author("Ivan Temchenko <35359595i@gmail.com>")
 		.about("
-||===============|Welcome to tvcheck 0.4.6|=================||
+||===============|Welcome to tvcheck 0.5.0|=================||
 ||===========|Author: Ivan Temchenko (C) (@ 2016)|==============||
 
 Options:
