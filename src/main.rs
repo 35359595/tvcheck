@@ -52,10 +52,10 @@ fn main() {
 	let vlist = read(&list.to_string());
 	for path in vlist { //path - each series episode list file
 	 if &path != "" {
-		let file = &path.trim_left_matches("http://fs.to/flist/").trim_left_matches("http://brb.to/flist/").to_string();
+		let file = path.trim_left_matches("http://fs.to/flist/").trim_left_matches("http://brb.to/flist/").to_string();
 		let mut filem = homedir();
 		filem.push(".tvcheck");
-		filem.push(file);
+		filem.push(&file);
 		let target = &filem.to_str().unwrap();
 
 		//check watched series
@@ -95,13 +95,13 @@ fn main() {
 						.unwrap_or_else(|i| {panic!("Failed to run aria2c: {}", i)});
 
                     let success: i32 = 0; //download status checker
-                    if &status.code().unwrap() != &success { println!("Download failed with code: {}", status.code().unwrap()); }
+                    if status.code().unwrap() != success { println!("Download failed with code: {}", status.code().unwrap()); }
                     else{
                             let new = &filem.to_str().unwrap();
                             //let name = add(&new.to_string(), &path); //WTF???? why add?
-							append(&new.to_string(), &path[..]);
+							append(&new.to_string(), &episode);
                             if matches.is_present("silent") != true {
-                                notify(&filem.to_str().unwrap());
+                                notify(&episode);//filem.to_str().unwrap());
                             }
                         }
 				}
@@ -166,7 +166,7 @@ fn homedir() -> PathBuf {
 	homedir
 }
 //create file and add each episode from new line
-fn add(filem: & String, path: &String) -> String {
+fn add(filem: &String, path: &String) -> String {
 	let mut file = match File::create(filem){
 		Ok(file) => file,
 		Err(_) => panic!("Unable to create file!"),
@@ -193,7 +193,7 @@ fn add(filem: & String, path: &String) -> String {
 		ep.to_string()
 }
 //open existing file and append one line to it
-fn append(line: &String, path_given: &str){
+fn append(line: &String, path_given: &String){
 
 	//getting path to list
 	let mut path = homedir();
@@ -258,7 +258,7 @@ fn notify(s: &str) {
 fn add_series(txt: String){
 	println!("Adding: {}", &txt);
 	//adding new line to list
-	append(&txt, &"".to_string());
+	append(&txt, &String::from(""));
 }
 
 //adding new series
@@ -274,7 +274,7 @@ fn new_series(txt: String){
 	//converting to str and than ri
 	let target = &filem.to_str().unwrap();
 
-	append(&target.to_string(), &"");
+	append(&target.to_string(), &String::from(""));
 }
 
 //remove ended season
