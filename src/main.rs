@@ -97,11 +97,9 @@ fn main() {
                     let success: i32 = 0; //download status checker
                     if status.code().unwrap() != success { println!("Download failed with code: {}", status.code().unwrap()); }
                     else{
-                            let new = &filem.to_str().unwrap();
-                            //let name = add(&new.to_string(), &path); //WTF???? why add?
-							append(&new.to_string(), &episode);
+							append(&file.to_string(), &episode);
                             if matches.is_present("silent") != true {
-                                notify(&episode);//filem.to_str().unwrap());
+                                notify(&file);
                             }
                         }
 				}
