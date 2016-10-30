@@ -19,56 +19,85 @@ const CUT: &'static str = "/";
 fn main() {
 	//set and check
 	let homem = homedir();
+
 	let home = &homem.to_str().unwrap();
+
 	if !test(&home.to_string()) { match create_dir(&home.to_string()) {
+
 				Err(why) => println!("! {:?}", why.kind()),
+
 				Ok(_) => {},
+
 			}}
+
 	let mut listm = homedir();
-	listm.push(".tvcheck");
-	listm.push("list");
+
+	listm.push(".tvcheck/list");
+
 	let list = &listm.to_str().unwrap();
 
 	//arg parsing
 	let matches = parse_args();
-	//if add
-	let a = matches.value_of("add").unwrap_or("");
-		if a != "" { add_series(a.to_string()); }
-	//if new
-	let n = matches.value_of("new").unwrap_or("");
-		if n != "" { new_series(n.to_string()); }
-    //if remove
-    if matches.is_present("remove"){ remove(); }
+
+		//if add
+		let a = matches.value_of("add").unwrap_or("");
+
+			if a != "" { add_series(a.to_string()); }
+
+		//if new
+		let n = matches.value_of("new").unwrap_or("");
+
+			if n != "" { new_series(n.to_string()); }
+
+	    //if remove
+	    if matches.is_present("remove"){ remove(); }
 
 	//check if any series added
 	if !test(&list.to_string()) {
+
 		//if no list file - ask for link and create list
 		println!("List is empty, provide link to episodes list file:");
+
 		let mut txt = String::new();
+
 		io::stdin().read_line(&mut txt).ok().expect("Failed to read line");
+
 		write(txt, &list.to_string());
 	}
+
 	//if list exists - process each series
 	let vlist = read(&list.to_string());
+
 	for path in vlist { //path - each series episode list file
+
 	 if &path != "" {
+
 		let file = path.trim_left_matches("http://fs.to/flist/").trim_left_matches("http://brb.to/flist/").to_string();
+
 		let mut filem = homedir();
-		filem.push(".tvcheck");
-		filem.push(&file);
+
+		filem.push(".tvcheck/{&file}");
+
+		//filem.push(&file);
 		let target = &filem.to_str().unwrap();
 
 		//check watched series
 		//if not watched before - adding list of server episodes to local file
 		if !test(&target.to_string()) {
+
 			add(&target.to_string(), &path);
+
 		}
 
 		//if watched - checking series list
-		if test(&target.to_string()) {
+		else {
+
 			let season = get(&path);
+
 			let local_series = read(&target);
+
 			println!("{} episodes on server. {} watched episodes.", &season.len(), &local_series.len());
+
 			let mut cnt = &season.len() - &local_series.len();
 
 			//if list from server is empty
@@ -77,12 +106,19 @@ fn main() {
 			//if episodes on server more then local
 			else if cnt > 0 {
 				while cnt > 0 {
+
 					let episode = &season[&season.len() - &cnt];
+
 					println!("New episode! {}", &episode);
+
 					cnt -= 1;
+
 					println!("Downloading...");
+
 					let mut dwnl = homedir();
+
 					dwnl.push("Downloads");
+
 					let store = dwnl.to_str().unwrap();
 
 					//starting download manager for this episode
@@ -95,23 +131,24 @@ fn main() {
 						.unwrap_or_else(|i| {panic!("Failed to run aria2c: {}", i)});
 
                     let success: i32 = 0; //download status checker
+
                     if status.code().unwrap() != success { println!("Download failed with code: {}", status.code().unwrap()); }
+
                     else{
-							append(&file.to_string(), &episode);
-                            if matches.is_present("silent") != true {
-                                notify(&file);
-                            }
-                        }
+							append(&episode, &file.to_string());
+
+                            if matches.is_present("silent") != true
+							{
+                                notify(&episode[82..episode.len()]);
+							}
+                    }
 				}
 			}
 			else { println!("No new episodes found for this series."); }
 		}
-		//some sht happend
-		else {
-			println!("Wow, thats unexpected....");
-		     }
 	} }
 }
+
 //loading list from web
 fn get(list: &str) -> Vec<String>{
 	let client = Client::new();
@@ -124,6 +161,7 @@ fn get(list: &str) -> Vec<String>{
 	else {panic!("Server returned some crap! Stopping to prevent files damage! Try again later.");}
 
 }
+
 //read list from local list file
 fn read(name: &str) -> Vec<String>{
 	let mut open = match File::open(name){
@@ -137,6 +175,7 @@ fn read(name: &str) -> Vec<String>{
 		};
 	eps.lines().map(|s| s.to_owned()).collect::<Vec<_>>()
 }
+
 //write list to local file
 fn write(inpt: String, name: &str){
 	 let mut file = match File::create(name){
@@ -148,6 +187,7 @@ fn write(inpt: String, name: &str){
                 Err(_) => panic!("Unable to write to file!"),
         };
 }
+
 //check if file exists in path specified
 fn test(path: &String) -> bool {
 	match metadata(path) {
@@ -155,6 +195,7 @@ fn test(path: &String) -> bool {
 		Err(_) => false,
 	}
 }
+
 //get ~ or %HOME% or %UserProfile% path from environement
 fn homedir() -> PathBuf {
 	let homedir: PathBuf = match env::home_dir() {
@@ -163,6 +204,7 @@ fn homedir() -> PathBuf {
 	};
 	homedir
 }
+
 //create file and add each episode from new line
 fn add(filem: &String, path: &String) -> String {
 	let mut file = match File::create(filem){
@@ -190,6 +232,7 @@ fn add(filem: &String, path: &String) -> String {
 		println!("Added new Episode: {}", &ep);
 		ep.to_string()
 }
+
 //open existing file and append one line to it
 fn append(line: &String, path_given: &String){
 
@@ -272,7 +315,8 @@ fn new_series(txt: String){
 	//converting to str and than ri
 	let target = &filem.to_str().unwrap();
 
-	append(&target.to_string(), &String::from(""));
+	append(&txt, &String::from(""));
+	append(&String::from(""), &target.to_string());
 }
 
 //remove ended season
