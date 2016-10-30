@@ -135,8 +135,7 @@ fn main() {
                     if status.code().unwrap() != success { println!("Download failed with code: {}", status.code().unwrap()); }
 
                     else{
-							append(&episode, &file.to_string());
-
+							append(episode.to_owned(), &file.to_string());
                             if matches.is_present("silent") != true
 							{
                                 notify(&episode[82..episode.len()]);
@@ -234,7 +233,7 @@ fn add(filem: &String, path: &String) -> String {
 }
 
 //open existing file and append one line to it
-fn append(line: &String, path_given: &String){
+fn append(line_to_add: String, path_given: &String){
 
 	//getting path to list
 	let mut path = homedir();
@@ -244,8 +243,8 @@ fn append(line: &String, path_given: &String){
 	let path = path.to_str().unwrap();
 
 	//adding new line to text
-    let mut text = String::new();
-    text.push_str(line);
+    // let mut text = String::new();
+    // text.push_str(lineToAdd);
 
 	//opening file for writing and append
 	let target = OpenOptions::new()
@@ -257,7 +256,7 @@ fn append(line: &String, path_given: &String){
 		.unwrap();
 
 	//Writing string to file
-	match writeln!(&target, "{}", text) {
+	match writeln!(&target, "{}", line_to_add) {
 		Err(_) => panic!("Unable to write line to file!"),
 		Ok(_) => {},
 	};
@@ -296,10 +295,10 @@ fn notify(s: &str) {
 }
 
 //add wtached series
-fn add_series(txt: String){
-	println!("Adding: {}", &txt);
+fn add_series(episode_name: String){
+	println!("Adding: {}", &episode_name);
 	//adding new line to list
-	append(&txt, &String::from(""));
+	append(episode_name, &String::from(""));
 }
 
 //adding new series
@@ -315,8 +314,8 @@ fn new_series(txt: String){
 	//converting to str and than ri
 	let target = &filem.to_str().unwrap();
 
-	append(&txt, &String::from(""));
-	append(&String::from(""), &target.to_string());
+	append(txt, &String::from(""));
+	append(String::from(""), &target.to_string());
 }
 
 //remove ended season
